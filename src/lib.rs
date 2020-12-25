@@ -28,16 +28,19 @@ impl Clifford {
     const fn dim(self) -> usize {
         self.positive + self.negative + self.zero
     }
+    const fn size(self) -> usize {
+        self.dim() << 1
+    }
 }
 
 pub struct Multivector<T, const C: Clifford> where
-[(); 1 << C.dim()]: Sized,
+[(); C.size()]: Sized,
 {
-    data: [T; 1 << C.dim()],
+    data: [T; C.size()],
 }
 
 impl<T, const C: Clifford> Multivector<T, C> where
-[(); 1 << C.dim()]: Sized,
+[(); C.size()]: Sized,
 {
     pub fn grade<const G: usize>(&self) -> &[T; choose(C.dim(), G)] {
         let offset = 1 << G;
