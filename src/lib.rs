@@ -54,7 +54,7 @@ impl<T, const C: Clifford> Multivector<T, C> where
 [(); C.size()]: Sized,
 {
     pub fn grade<const G: usize>(&self) -> &[T; C.len(G)] {
-        let offset = 1 << G;
+        let offset = C.offset(G);
         unsafe {
             std::ptr::read(&self.data[offset..] as *const [T] as *const &[T; C.len(G)])
         }
