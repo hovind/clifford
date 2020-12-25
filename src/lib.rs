@@ -54,9 +54,17 @@ impl<T, const C: Clifford> Multivector<T, C> where
 [(); C.size()]: Sized,
 {
     pub fn grade<const G: usize>(&self) -> &[T; C.len(G)] {
-        let offset = C.offset(G);
         unsafe {
-            std::ptr::read(&self.data[offset..] as *const [T] as *const &[T; C.len(G)])
+            std::ptr::read(&self.data[C.offset(G)..] as *const [T] as *const &[T; C.len(G)])
         }
+    }
+}
+
+impl<T, const C: Clifford> std::ops::Mul for Multivector<T, C> where
+[(); C.size()]: Sized,
+{
+    type Output = Self;
+    fn mul(self, _rhs: Self) -> Self::Output {
+        todo!()
     }
 }
