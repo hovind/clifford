@@ -50,12 +50,20 @@ pub struct Multivector<T, const C: Clifford> where
     data: [T; C.size()],
 }
 
+pub struct Blade<T, const C: Clifford, const G: usize> where
+[(); C.len(G)]: Sized,
+{
+    data: [T; C.len(G)],
+}
+
 impl<T, const C: Clifford> Multivector<T, C> where
 [(); C.size()]: Sized,
 {
-    pub fn grade<const G: usize>(&self) -> &[T; C.len(G)] {
+    pub fn blade<const G: usize>(&self) -> &Blade<T, C, G> where
+    [(); C.len(G)]: Sized,
+    {
         unsafe {
-            std::ptr::read(&self.data[C.offset(G)..] as *const [T] as *const &[T; C.len(G)])
+            std::ptr::read(&self.data[C.offset(G)..] as *const [T] as *const &Blade<T, C, G>)
         }
     }
 }
@@ -68,3 +76,14 @@ impl<T, const C: Clifford> std::ops::Mul for Multivector<T, C> where
         todo!()
     }
 }
+/*
+impl<T, const C: Clifford, const GLHS: usize, const GRHS: usize> std::ops::Mul<Blade<T, C, GRHS>> for Blade<T, C, GLHS> where
+[(); C.len(GLHS)]: Sized,
+[(); C.len(GRHS)]: Sized,
+{
+    type Output = Blade<T, C, todo!()>;
+    fn mul(self, _rhs: Self) -> Self::Output {
+        todo!()
+    }
+}
+*/
