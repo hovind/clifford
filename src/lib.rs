@@ -1,19 +1,51 @@
 #![allow(incomplete_features)]
 #![feature(const_generics, const_evaluatable_checked)]
 
-const fn choose(n: usize, mut r: usize) -> usize {
-    if r > n - r {
-        r = n - r;
+#[cfg(test)]
+mod tests {
+    use crate::*;
+    #[test]
+    fn it_works() {
+        let _ = Complex::<f64>::zero();
+        assert_eq!(2, 1 + 1);
     }
+}
 
-    let mut ans = 1usize;
-    let mut i = 0usize;
-    while i <= r {
-        ans *= n - r + i;
-        ans /= i;
-        i += 1;
+use std::ops::{Add, Mul, Neg, AddAssign, SubAssign};
+
+pub trait Zero {
+    fn zero() -> Self;
+}
+
+impl Zero for f64 {
+    fn zero() -> Self {
+        0.0f64
     }
-    ans
+}
+
+impl Zero for f32 {
+    fn zero() -> Self {
+        0.0f32
+    }
+}
+
+const COMPLEX : Clifford = Clifford {
+    positive: 1,
+    negative: 1,
+    zero: 0,
+};
+
+pub type Complex<T> = Multivector<T, COMPLEX>;
+
+const fn is_canonically_ordered(mut lhs: usize, rhs: usize) -> bool {
+    lhs <<= 1;
+
+    let mut sum = 0usize;
+    while lhs != 0 {
+        sum += usize::count_ones(lhs & rhs) as usize;
+        lhs <<= 1;
+    }
+    sum % 2 == 0
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -28,19 +60,7 @@ impl Clifford {
         self.positive + self.negative + self.zero
     }
     const fn size(self) -> usize {
-        self.dim() << 1
-    }
-    const fn len(self, grade: usize) -> usize {
-        choose(self.dim(), grade)
-    }
-    const fn offset(self, grade: usize) -> usize {
-        let mut g = 0usize;
-        let mut ans = 0usize;
-        while g < grade {
-            ans += self.len(g);
-            g += 1;
-        }
-        ans
+        1 << self.dim()
     }
 }
 
@@ -50,40 +70,89 @@ pub struct Multivector<T, const C: Clifford> where
     data: [T; C.size()],
 }
 
-pub struct Blade<T, const C: Clifford, const G: usize> where
-[(); C.len(G)]: Sized,
+impl<T, const C: Clifford> Zero for Multivector<T, C> where
+T: Copy + Zero,
+[(); C.size()]: Sized,
 {
-    data: [T; C.len(G)],
+    fn zero() -> Self {
+        Self {
+            data: [T::zero(); C.size()],
+        }
+
+    }
 }
 
 impl<T, const C: Clifford> Multivector<T, C> where
 [(); C.size()]: Sized,
 {
-    pub fn blade<const G: usize>(&self) -> &Blade<T, C, G> where
-    [(); C.len(G)]: Sized,
+    pub fn inner_product(&self, other: &Self) -> T where
+    T: Clone + AddAssign + SubAssign + Mul<T, Output = T> + Zero,
     {
-        unsafe {
-            std::ptr::read(&self.data[C.offset(G)..] as *const [T] as *const &Blade<T, C, G>)
+        let mut x = T::zero();
+        for i in 0..C.positive {
+            let j = 1 << i;
+            x += self.data[j].clone() * other.data[j].clone();
         }
+        for i in C.positive..(C.positive + C.negative) {
+            let j = 1 << i;
+            x -= self.data[j].clone() * other.data[j].clone();
+        }
+        x
+    }
+
+    pub fn outer_product(&self, other: &Self) -> Self where
+    T: Clone + Mul<T, Output = T> + Neg<Output = T> + AddAssign + SubAssign,
+    Multivector<T, C>: Zero,
+    {
+        let mut x = Self::zero();
+        for i in 0..C.size() {
+            for j in 0..C.size() {
+                let val = self.data[i].clone() * other.data[i].clone();
+                x.data[i ^ j] += if is_canonically_ordered(i, j) {
+                    val
+                } else {
+                    val.neg()
+                }
+                                    
+            }
+        }
+        x
+
+    }
+
+}
+
+impl<T, const C: Clifford> Mul for Multivector<T, C> where
+[(); C.size()]: Sized,
+T: Copy + AddAssign + SubAssign + Mul<T, Output = T> + Neg<Output = T> + Zero,
+Multivector<T, C>: Add<T, Output = Multivector<T, C>>,
+{
+    type Output = Self;
+    fn mul(self, other: Self) -> Self::Output {
+        self.outer_product(&other) + self.inner_product(&other)
     }
 }
 
-impl<T, const C: Clifford> std::ops::Mul for Multivector<T, C> where
+impl<T, const C: Clifford> Add for Multivector<T, C> where
 [(); C.size()]: Sized,
+T: Clone + AddAssign,
 {
     type Output = Self;
-    fn mul(self, _rhs: Self) -> Self::Output {
-        todo!()
+    fn add(mut self, other: Self) -> Self::Output {
+        for i in 0..C.size() {
+            self.data[i] += other.data[i].clone();
+        }
+        self
     }
 }
-/*
-impl<T, const C: Clifford, const GLHS: usize, const GRHS: usize> std::ops::Mul<Blade<T, C, GRHS>> for Blade<T, C, GLHS> where
-[(); C.len(GLHS)]: Sized,
-[(); C.len(GRHS)]: Sized,
+
+impl<T, const C: Clifford> Add<T> for Multivector<T, C> where
+[(); C.size()]: Sized,
+T: Clone + AddAssign,
 {
-    type Output = Blade<T, C, todo!()>;
-    fn mul(self, _rhs: Self) -> Self::Output {
-        todo!()
+    type Output = Self;
+    fn add(mut self, other: T) -> Self::Output {
+        self.data[0] += other;
+        self
     }
 }
-*/
