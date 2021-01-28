@@ -194,6 +194,14 @@ impl<T, const C: Clifford> From<[T; C.size()]> for Multivector<T, C> where
     }
 }
 
+impl<T, const C: Clifford> Into<[T; C.size()]> for Multivector<T, C> where
+[(); C.size()]: Sized,
+{
+    fn into(self: Self) -> [T; C.size()] {
+        self.data
+    }
+}
+
 impl<T, const C: Clifford> Multivector<T, C> where
 [(); C.size()]: Sized,
 {

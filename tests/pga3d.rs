@@ -4,10 +4,29 @@
 use clifford::{Clifford, Multivector, pga};
 use quickcheck::{Arbitrary, Gen};
 use quickcheck_macros::quickcheck;
+use pga3d::PGA3D;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 struct AMultivector<T, const C: Clifford>(Multivector<T, C>) where
 [(); C.size()]: Sized;
+
+/* TODO: Add alias when it stops generating an ICE, ICE, BABY
+ * type APga<T, const D: usize> = AMultivector<T, { pga(D) }>;
+ */
+
+impl Into<PGA3D> for AMultivector<f64, { pga(3) }> {
+    fn into(self: Self) -> PGA3D {
+        PGA3D {
+            mvec: self.0.into()
+        }
+    }
+}
+
+impl From<PGA3D> for AMultivector<f64, { pga(3) }> {
+    fn from(v: PGA3D) -> Self {
+        AMultivector(Multivector::<f64, { pga(3) }>::from(v.mvec))
+    }
+}
 
 
 impl<T, const C: Clifford> Arbitrary for AMultivector<T, C> where
@@ -26,8 +45,11 @@ T: Arbitrary + Clone + Send + 'static,
         AMultivector(Multivector::from(data))
     }
 }
-
 #[quickcheck]
-fn double_reversal_is_identity(_v: AMultivector<f64, { pga(3) }>) -> bool {
-    true
+fn reference_implementation((u, v): (AMultivector<f64, { pga(3) }>, AMultivector<f64, { pga(3) }>)) -> bool {
+    let ours = AMultivector(u.0.clone() * v.0.clone());
+    let u_theirs: PGA3D = u.into();
+    let v_theirs: PGA3D = v.into();
+    let theirs = u_theirs * v_theirs;
+    ours == AMultivector::<f64, { pga(3) }>::from(theirs)
 }
