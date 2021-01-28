@@ -149,7 +149,7 @@ const fn is_canonically_ordered(mut lhs: usize, rhs: usize) -> bool {
     sum % 2 == 0
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Clifford {
     positive: usize,
     negative: usize,
@@ -165,7 +165,7 @@ impl Clifford {
     }
 }
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Multivector<T, const C: Clifford> where
 [(); C.size()]: Sized,
 {
