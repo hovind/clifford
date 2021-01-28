@@ -17,8 +17,8 @@ const basis: &'static [&'static str] = &[ "1","e0","e1","e2","e3","e01","e02","e
 const basis_count: usize = basis.len();
 
 #[derive(Default,Debug,Clone,Copy,PartialEq)]
-struct PGA3D {
-    mvec: [float_t; basis_count]
+pub struct PGA3D {
+    pub mvec: [float_t; basis_count]
 }
 
 impl PGA3D {
