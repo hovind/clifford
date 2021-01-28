@@ -29,20 +29,51 @@ impl Zero for f32 {
     }
 }
 
-const COMPLEX : Clifford = Clifford {
+const STA: Clifford = Clifford {
     positive: 1,
-    negative: 1,
+    negative: 3,
     zero: 0,
 };
 
-pub type Complex<T> = Multivector<T, COMPLEX>;
+const fn vga(d: usize) -> Clifford {
+    Clifford {
+        positive: d,
+        negative: 0,
+        zero: 0,
+    }
+}
+
+const fn cga(d: usize) -> Clifford {
+    Clifford {
+        positive: d,
+        negative: 1,
+        zero: 0,
+    }
+}
+
+const fn pga(d: usize) -> Clifford {
+    Clifford {
+        positive: d,
+        negative: 0,
+        zero: 1,
+    }
+}
+
+pub type Vga<T, const D: usize> = Multivector<T, { vga(D) }>;
+pub type Cga<T, const D: usize> = Multivector<T, { cga(D) }>;
+pub type Pga<T, const D: usize> = Multivector<T, { pga(D) }>;
+pub type Sta<T> = Multivector<T, STA>;
+pub type Hyperbolic<T> = Vga<T, 0>;
+pub type Complex<T> = Cga<T, 0>;
+pub type Dual<T> = Pga<T, 0>;
+pub type Quaternion<T> = Cga<T, 2>;
 
 const fn is_canonically_ordered(mut lhs: usize, rhs: usize) -> bool {
     lhs <<= 1;
 
-    let mut sum = 0usize;
+    let mut sum = 0u32;
     while lhs != 0 {
-        sum += usize::count_ones(lhs & rhs) as usize;
+        sum += usize::count_ones(lhs & rhs);
         lhs <<= 1;
     }
     sum % 2 == 0
