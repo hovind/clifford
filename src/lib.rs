@@ -184,6 +184,16 @@ T: Copy + Zero,
     }
 }
 
+impl<T, const C: Clifford> From<[T; C.size()]> for Multivector<T, C> where
+[(); C.size()]: Sized,
+{
+    fn from(data: [T; C.size()]) -> Multivector<T, C> {
+        Multivector {
+            data: data,
+        }
+    }
+}
+
 impl<T, const C: Clifford> Multivector<T, C> where
 [(); C.size()]: Sized,
 {
