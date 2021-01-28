@@ -105,7 +105,7 @@ const STA: Clifford = Clifford {
     zero: 0,
 };
 
-const fn vga(d: usize) -> Clifford {
+pub const fn vga(d: usize) -> Clifford {
     Clifford {
         positive: d,
         negative: 0,
@@ -113,7 +113,7 @@ const fn vga(d: usize) -> Clifford {
     }
 }
 
-const fn cga(d: usize) -> Clifford {
+pub const fn cga(d: usize) -> Clifford {
     Clifford {
         positive: d,
         negative: 1,
@@ -121,7 +121,7 @@ const fn cga(d: usize) -> Clifford {
     }
 }
 
-const fn pga(d: usize) -> Clifford {
+pub const fn pga(d: usize) -> Clifford {
     Clifford {
         positive: d,
         negative: 0,
