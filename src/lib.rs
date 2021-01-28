@@ -1,17 +1,87 @@
 #![allow(incomplete_features)]
-#![feature(const_generics, const_evaluatable_checked)]
+#![feature(const_generics, const_evaluatable_checked, const_panic, int_bits_const)]
 
 #[cfg(test)]
 mod tests {
     use crate::*;
     #[test]
-    fn it_works() {
-        let _ = Complex::<f64>::zero();
-        assert_eq!(2, 1 + 1);
+    fn injective_phi() {
+        const DIM: usize = 8;
+        const SIZE: usize = 1 << DIM;
+        let mut range = [None; SIZE];
+        for i in 0..SIZE {
+            let j = phi(i, DIM);
+            assert_eq!(None, range[j]);
+            range[j] = Some(i);
+        }
+    }
+
+    #[test]
+    fn injective_omega() {
+        const DIM: usize = 8;
+        const SIZE: usize = 1 << DIM;
+        let mut range = [None; SIZE];
+        for i in 0..SIZE {
+            let j = omega(i, DIM);
+            assert_eq!(None, range[j]);
+            range[j] = Some(i);
+        }
+    }
+
+    #[test]
+    fn bijective() {
+        const DIM: usize = 8;
+        const SIZE: usize = 1 << DIM;
+        for i in 0..SIZE {
+            assert_eq!(i, omega(phi(i, DIM), DIM));
+        }
     }
 }
 
 use std::ops::{Add, Mul, Neg, AddAssign, SubAssign};
+
+const fn phi(x: usize, dim: usize) -> usize {
+    let size = 1 << dim;
+    let mut n = 0usize;
+    let mut i = 0usize;
+    while i < size {
+        if usize::count_ones(i) < usize::count_ones(x) || i < x && usize::count_ones(i) == usize::count_ones(x) {
+            n += 1;
+        }
+        i += 1;
+    }
+    n
+}
+
+const fn omega(y: usize, dim: usize) -> usize {
+    const fn omega_helper(y: usize, dim: usize) -> (usize, usize) {
+        let mut i = 0usize;
+        let mut c = 1usize;
+        let mut base = 0usize;
+
+        while base + c <= y {
+            base += c;
+            c *= dim - i;
+            i += 1;
+            c /= i;
+        }
+        (i, base)
+    }
+
+    let (i, base) = omega_helper(y, dim);
+
+    let mut k = 0usize;
+    let mut j = 0usize;
+    while {
+        if usize::count_ones(k) as usize == i {
+            j += 1;
+        }
+        base + j <= y
+    } {
+        k += 1;
+    }
+    k
+}
 
 pub trait Zero {
     fn zero() -> Self;
