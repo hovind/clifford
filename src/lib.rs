@@ -157,14 +157,15 @@ pub struct Clifford {
 }
 
 impl Clifford {
-    const fn dim(self) -> usize {
+    pub const fn dim(self) -> usize {
         self.positive + self.negative + self.zero
     }
-    const fn size(self) -> usize {
+    pub const fn size(self) -> usize {
         1 << self.dim()
     }
 }
 
+#[derive(Clone, PartialEq, Eq)]
 pub struct Multivector<T, const C: Clifford> where
 [(); C.size()]: Sized,
 {
