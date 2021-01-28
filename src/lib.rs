@@ -40,7 +40,7 @@ mod tests {
 
 use std::ops::{Add, Mul, Neg, AddAssign, SubAssign};
 
-const fn phi(x: usize, dim: usize) -> usize {
+pub const fn phi(x: usize, dim: usize) -> usize {
     let size = 1 << dim;
     let mut n = 0usize;
     let mut i = 0usize;
@@ -53,7 +53,7 @@ const fn phi(x: usize, dim: usize) -> usize {
     n
 }
 
-const fn omega(y: usize, dim: usize) -> usize {
+pub const fn omega(y: usize, dim: usize) -> usize {
     const fn omega_helper(y: usize, dim: usize) -> (usize, usize) {
         let mut i = 0usize;
         let mut c = 1usize;
