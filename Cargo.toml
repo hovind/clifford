@@ -15,5 +15,4 @@ members = [
 
 [dev-dependencies]
 pga3d = { path = "pga3d" }
-quickcheck = "1.0.0"
-quickcheck_macros = "1.0.0"
+quickcheck = "1.0.3"

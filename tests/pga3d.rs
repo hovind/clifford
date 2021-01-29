@@ -2,8 +2,7 @@
 #![feature(const_generics, const_evaluatable_checked, const_panic, int_bits_const, maybe_uninit_uninit_array, maybe_uninit_extra, maybe_uninit_slice)]
 
 use clifford::{Clifford, Multivector, pga};
-use quickcheck::{Arbitrary, Gen};
-use quickcheck_macros::quickcheck;
+use quickcheck::{Arbitrary, Gen, QuickCheck};
 use pga3d::PGA3D;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -45,11 +44,15 @@ T: Arbitrary + Clone + Send + 'static,
         AMultivector(Multivector::from(data))
     }
 }
-#[quickcheck]
-fn reference_implementation((u, v): (AMultivector<f64, { pga(3) }>, AMultivector<f64, { pga(3) }>)) -> bool {
-    let ours = AMultivector(u.0.clone() * v.0.clone());
-    let u_theirs: PGA3D = u.into();
-    let v_theirs: PGA3D = v.into();
-    let theirs = u_theirs * v_theirs;
-    ours == AMultivector::<f64, { pga(3) }>::from(theirs)
+
+#[test]
+fn prop_reference_implementation() {
+    fn reference_implementation((u, v): (AMultivector<f64, { pga(3) }>, AMultivector<f64, { pga(3) }>)) -> bool {
+        let ours = AMultivector(u.0.clone() * v.0.clone());
+        let u_theirs: PGA3D = u.into();
+        let v_theirs: PGA3D = v.into();
+        let theirs = u_theirs * v_theirs;
+        ours == AMultivector::<f64, { pga(3) }>::from(theirs)
+    }
+    QuickCheck::new().quickcheck(reference_implementation as fn((AMultivector<f64, { pga(3) }>, AMultivector<f64, { pga(3) }>)) -> bool);
 }
