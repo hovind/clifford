@@ -1,5 +1,5 @@
 #![allow(incomplete_features)]
-#![feature(const_generics, const_evaluatable_checked, const_panic, int_bits_const)]
+#![feature(const_generics, const_evaluatable_checked, const_panic)]
 
 #[cfg(test)]
 mod tests {

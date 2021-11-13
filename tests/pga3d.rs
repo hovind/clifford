@@ -1,5 +1,5 @@
 #![allow(incomplete_features)]
-#![feature(const_generics, const_evaluatable_checked, const_panic, int_bits_const, maybe_uninit_uninit_array, maybe_uninit_extra, maybe_uninit_slice)]
+#![feature(const_generics, const_evaluatable_checked, const_panic, maybe_uninit_uninit_array, maybe_uninit_extra, maybe_uninit_slice)]
 
 use clifford::{Clifford, Multivector, pga};
 use quickcheck::{Arbitrary, Gen, QuickCheck};
