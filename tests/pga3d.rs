@@ -1,7 +1,7 @@
 #![allow(incomplete_features)]
 #![feature(const_generics, const_evaluatable_checked, const_panic, maybe_uninit_uninit_array, maybe_uninit_extra, maybe_uninit_slice)]
 
-use clifford::{Clifford, Multivector, pga};
+use clifford::{Clifford, Float, Multivector, Pga, pga};
 use quickcheck::{Arbitrary, Gen, QuickCheck};
 use pga3d::PGA3D;
 
@@ -44,6 +44,16 @@ T: Arbitrary + Clone + Send + 'static,
         AMultivector(Multivector::from(data))
     }
 }
+
+impl<T, const C: Clifford> Float for AMultivector<T, C> where
+T: Float,
+[(); C.size()]: Sized,
+{
+    fn is_nan(&self) -> bool {
+        self.0.is_nan()
+    }
+}
+
 
 #[test]
 fn prop_reference_implementation() {

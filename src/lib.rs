@@ -83,6 +83,22 @@ pub const fn blade_to_bit(y: usize, dim: usize) -> usize {
     k
 }
 
+pub trait Float {
+    fn is_nan(&self) -> bool;
+}
+
+impl Float for f64 {
+    fn is_nan(&self) -> bool {
+        f64::is_nan(self.clone())
+    }
+}
+
+impl Float for f32 {
+    fn is_nan(&self) -> bool {
+        f32::is_nan(self.clone())
+    }
+}
+
 pub trait One {
     fn one() -> Self;
 }
@@ -197,6 +213,21 @@ T: Copy + Zero,
             data: [T::zero(); C.size()],
         }
 
+    }
+}
+
+impl<T, const C: Clifford> Float for Multivector<T, C> where
+T: Float,
+[(); C.size()]: Sized,
+{
+    fn is_nan(&self) -> bool {
+
+        for i in 0..C.size() {
+            if self.data[i].is_nan() {
+                return true;
+            }
+        }
+        return false;
     }
 }
 
