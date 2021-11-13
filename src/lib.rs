@@ -5,24 +5,24 @@
 mod tests {
     use crate::*;
     #[test]
-    fn injective_phi() {
+    fn injective_bit_to_blade() {
         const DIM: usize = 8;
         const SIZE: usize = 1 << DIM;
         let mut range = [None; SIZE];
         for i in 0..SIZE {
-            let j = phi(i, DIM);
+            let j = bit_to_blade(i, DIM);
             assert_eq!(None, range[j]);
             range[j] = Some(i);
         }
     }
 
     #[test]
-    fn injective_omega() {
+    fn injective_blade_to_bit() {
         const DIM: usize = 8;
         const SIZE: usize = 1 << DIM;
         let mut range = [None; SIZE];
         for i in 0..SIZE {
-            let j = omega(i, DIM);
+            let j = blade_to_bit(i, DIM);
             assert_eq!(None, range[j]);
             range[j] = Some(i);
         }
@@ -33,14 +33,14 @@ mod tests {
         const DIM: usize = 8;
         const SIZE: usize = 1 << DIM;
         for i in 0..SIZE {
-            assert_eq!(i, omega(phi(i, DIM), DIM));
+            assert_eq!(i, blade_to_bit(bit_to_blade(i, DIM), DIM));
         }
     }
 }
 
 use std::ops::{Add, Mul, Neg, AddAssign, SubAssign};
 
-pub const fn phi(x: usize, dim: usize) -> usize {
+pub const fn bit_to_blade(x: usize, dim: usize) -> usize {
     let size = 1 << dim;
     let mut n = 0usize;
     let mut i = 0usize;
@@ -53,8 +53,8 @@ pub const fn phi(x: usize, dim: usize) -> usize {
     n
 }
 
-pub const fn omega(y: usize, dim: usize) -> usize {
-    const fn omega_helper(y: usize, dim: usize) -> (usize, usize) {
+pub const fn blade_to_bit(y: usize, dim: usize) -> usize {
+    const fn blade_to_bit_helper(y: usize, dim: usize) -> (usize, usize) {
         let mut i = 0usize;
         let mut c = 1usize;
         let mut base = 0usize;
@@ -68,7 +68,7 @@ pub const fn omega(y: usize, dim: usize) -> usize {
         (i, base)
     }
 
-    let (i, base) = omega_helper(y, dim);
+    let (i, base) = blade_to_bit_helper(y, dim);
 
     let mut k = 0usize;
     let mut j = 0usize;
@@ -81,6 +81,22 @@ pub const fn omega(y: usize, dim: usize) -> usize {
         k += 1;
     }
     k
+}
+
+pub trait One {
+    fn one() -> Self;
+}
+
+impl One for f64 {
+    fn one() -> Self {
+        1.0f64
+    }
+}
+
+impl One for f32 {
+    fn one() -> Self {
+        1.0f32
+    }
 }
 
 pub trait Zero {
@@ -139,12 +155,12 @@ pub type Dual<T> = Pga<T, 0>;
 pub type Quaternion<T> = Cga<T, 2>;
 
 const fn is_canonically_ordered(mut lhs: usize, rhs: usize) -> bool {
-    lhs <<= 1;
+    lhs >>= 1;
 
     let mut sum = 0u32;
     while lhs != 0 {
         sum += usize::count_ones(lhs & rhs);
-        lhs <<= 1;
+        lhs >>= 1;
     }
     sum % 2 == 0
 }
@@ -209,13 +225,12 @@ impl<T, const C: Clifford> Multivector<T, C> where
     T: Clone + AddAssign + SubAssign + Mul<T, Output = T> + Zero,
     {
         let mut x = T::zero();
-        for i in 0..C.positive {
-            let j = 1 << i;
-            x += self.data[j].clone() * other.data[j].clone();
+        x += self.data[0].clone() * self.data[0].clone();
+        for i in 1 + C.zero..1 + C.zero + C.positive {
+            x += self.data[i].clone() * other.data[i].clone();
         }
-        for i in C.positive..(C.positive + C.negative) {
-            let j = 1 << i;
-            x -= self.data[j].clone() * other.data[j].clone();
+        for i in 1 + C.zero + C.positive..1 + C.zero + C.positive + C.negative {
+            x -= self.data[i].clone() * other.data[i].clone();
         }
         x
     }
@@ -227,17 +242,17 @@ impl<T, const C: Clifford> Multivector<T, C> where
         let mut x = Self::zero();
         for i in 0..C.size() {
             for j in 0..C.size() {
-                let val = self.data[i].clone() * other.data[i].clone();
-                x.data[i ^ j] += if is_canonically_ordered(i, j) {
-                    val
-                } else {
-                    val.neg()
+                if i & j == 0 {
+                    let val = self.data[bit_to_blade(i, C.dim())].clone() * other.data[bit_to_blade(j, C.dim())].clone();
+                    x.data[bit_to_blade(i ^ j, C.dim())] += if is_canonically_ordered(i, j) {
+                        val
+                    } else {
+                        val.neg()
+                    }
                 }
-                                    
             }
         }
         x
-
     }
 
 }
