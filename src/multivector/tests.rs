@@ -1,9 +1,39 @@
-#![allow(incomplete_features)]
-#![feature(const_generics, const_evaluatable_checked, const_panic, maybe_uninit_uninit_array, maybe_uninit_extra, maybe_uninit_slice)]
-
-use clifford::{Clifford, Float, Multivector, Pga, pga};
+use crate::multivector::*;
 use quickcheck::{Arbitrary, Gen, QuickCheck};
 use pga3d::PGA3D;
+
+#[test]
+fn injective_bit_to_blade() {
+    const DIM: usize = 8;
+    const SIZE: usize = 1 << DIM;
+    let mut range = [None; SIZE];
+    for i in 0..SIZE {
+        let j = bit_to_blade(i, DIM);
+        assert_eq!(None, range[j]);
+        range[j] = Some(i);
+    }
+}
+
+#[test]
+fn injective_blade_to_bit() {
+    const DIM: usize = 8;
+    const SIZE: usize = 1 << DIM;
+    let mut range = [None; SIZE];
+    for i in 0..SIZE {
+        let j = blade_to_bit(i, DIM);
+        assert_eq!(None, range[j]);
+        range[j] = Some(i);
+    }
+}
+
+#[test]
+fn bijective() {
+    const DIM: usize = 8;
+    const SIZE: usize = 1 << DIM;
+    for i in 0..SIZE {
+        assert_eq!(i, blade_to_bit(bit_to_blade(i, DIM), DIM));
+    }
+}
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct AMultivector<T, const C: Clifford>(Multivector<T, C>) where
@@ -15,9 +45,11 @@ struct AMultivector<T, const C: Clifford>(Multivector<T, C>) where
 
 impl Into<PGA3D> for AMultivector<f64, { pga(3) }> {
     fn into(self: Self) -> PGA3D {
-        PGA3D {
-            mvec: self.0.into()
+        let mut x = PGA3D::zero();
+        for i in 0..pga(3).size() {
+            x[i] = self.0.data[i];
         }
+        return x;
     }
 }
 
