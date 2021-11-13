@@ -62,7 +62,8 @@ fn prop_reference_implementation() {
         let u_theirs: PGA3D = u.into();
         let v_theirs: PGA3D = v.into();
         let theirs = u_theirs * v_theirs;
-        ours == AMultivector::<f64, { pga(3) }>::from(theirs)
+        let theirs = AMultivector::<f64, { pga(3) }>::from(theirs);
+        ours.is_nan() && theirs.is_nan() || ours == theirs
     }
     QuickCheck::new().quickcheck(reference_implementation as fn((AMultivector<f64, { pga(3) }>, AMultivector<f64, { pga(3) }>)) -> bool);
 }
