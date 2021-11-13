@@ -10,9 +10,9 @@ edition = "2018"
 
 [workspace]
 members = [
-    "pga3d",
+    "ganja",
 ]
 
 [dev-dependencies]
-pga3d = { path = "pga3d" }
+ganja = { path = "ganja" }
 quickcheck = "1.0.3"

@@ -1,6 +1,7 @@
 use crate::multivector::*;
 use quickcheck::{Arbitrary, Gen, QuickCheck};
-use pga3d::PGA3D;
+
+const PGA3: Clifford = pga(3);
 
 #[test]
 fn injective_bit_to_blade() {
@@ -43,19 +44,24 @@ struct AMultivector<T, const C: Clifford>(Multivector<T, C>) where
  * type APga<T, const D: usize> = AMultivector<T, { pga(D) }>;
  */
 
-impl Into<PGA3D> for AMultivector<f64, { pga(3) }> {
-    fn into(self: Self) -> PGA3D {
-        let mut x = PGA3D::zero();
-        for i in 0..pga(3).size() {
+impl Into<ganja::PGA3D> for AMultivector<f64, PGA3> {
+    fn into(self: Self) -> ganja::PGA3D {
+        let mut x = ganja::PGA3D::zero();
+        for i in 0..PGA3.size() {
             x[i] = self.0.data[i];
         }
         return x;
     }
 }
 
-impl From<PGA3D> for AMultivector<f64, { pga(3) }> {
-    fn from(v: PGA3D) -> Self {
-        AMultivector(Multivector::<f64, { pga(3) }>::from(v.mvec))
+impl From<ganja::PGA3D> for AMultivector<f64, PGA3> {
+    fn from(v: ganja::PGA3D) -> Self {
+        let mut x = Multivector::<f64, PGA3>::zero();
+        for i in 0..PGA3.size() {
+            x.data[i] = v[i];
+        }
+
+        AMultivector(x)
     }
 }
 
@@ -88,14 +94,14 @@ T: Float,
 
 
 #[test]
-fn prop_reference_implementation() {
-    fn reference_implementation((u, v): (AMultivector<f64, { pga(3) }>, AMultivector<f64, { pga(3) }>)) -> bool {
+fn prop_quat_implementation() {
+    fn reference_implementation((u, v): (AMultivector<f64, PGA3>, AMultivector<f64, PGA3>)) -> bool {
         let ours = AMultivector(u.0.clone() * v.0.clone());
-        let u_theirs: PGA3D = u.into();
-        let v_theirs: PGA3D = v.into();
+        let u_theirs: ganja::PGA3D = u.into();
+        let v_theirs: ganja::PGA3D = v.into();
         let theirs = u_theirs * v_theirs;
-        let theirs = AMultivector::<f64, { pga(3) }>::from(theirs);
+        let theirs = AMultivector::<f64, PGA3>::from(theirs);
         ours.is_nan() && theirs.is_nan() || ours == theirs
     }
-    QuickCheck::new().quickcheck(reference_implementation as fn((AMultivector<f64, { pga(3) }>, AMultivector<f64, { pga(3) }>)) -> bool);
+    QuickCheck::new().quickcheck(reference_implementation as fn((AMultivector<f64, PGA3>, AMultivector<f64, PGA3>)) -> bool);
 }

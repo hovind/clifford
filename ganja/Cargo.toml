@@ -1,5 +1,5 @@
 [package]
-name = "pga3d"
+name = "ganja"
 version = "0.1.0"
 authors = ["Øystein Hovind <hovindo@gmail.com>"]
 edition = "2018"
