@@ -177,10 +177,9 @@ impl<T, const C: Clifford> Multivector<T, C> where
 [(); C.size()]: Sized,
 {
     pub fn inner_product(&self, other: &Self) -> T where
-    T: Clone + AddAssign + SubAssign + Mul<T, Output = T> + Zero,
+    T: Clone + AddAssign + SubAssign + Mul<T, Output = T>,
     {
-        let mut x = T::zero();
-        x += self.data[0].clone() * self.data[0].clone();
+        let mut x = self.data[0].clone() * other.data[0].clone();
         for i in 1 + C.zero..1 + C.zero + C.positive {
             x += self.data[i].clone() * other.data[i].clone();
         }
