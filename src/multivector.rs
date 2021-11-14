@@ -212,13 +212,13 @@ impl<T, const C: Clifford> Multivector<T, C> where
 
 }
 
-impl<T, const C: Clifford> Mul for Multivector<T, C> where
+impl<'a, 'b, T, const C: Clifford> Mul<&'b Multivector<T, C>> for &'a Multivector<T, C> where
 [(); C.size()]: Sized,
 T: Copy + AddAssign + SubAssign + Mul<T, Output = T> + Neg<Output = T> + Zero,
 Multivector<T, C>: Add<T, Output = Multivector<T, C>>,
 {
-    type Output = Self;
-    fn mul(self, other: Self) -> Self::Output {
+    type Output = Multivector<T, C>;
+    fn mul(self, other: &'b Multivector<T, C>) -> Self::Output {
         self.outer_product(&other) + self.inner_product(&other)
     }
 }
