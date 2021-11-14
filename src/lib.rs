@@ -15,4 +15,4 @@ pub type Sta<T> = Multivector<T, STA>;
 pub type Hyperbolic<T> = Vga<T, 0>;
 pub type Complex<T> = Cga<T, 0>;
 pub type Dual<T> = Pga<T, 0>;
-pub type Quaternion<T> = Cga<T, 2>;
+pub type Quaternion<T> = Cga<T, 1>;
