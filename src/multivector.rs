@@ -1,4 +1,5 @@
-use std::ops::{Add, Mul, Neg, AddAssign, Range, SubAssign};
+use core::ops::{Add, Mul, Neg, AddAssign, SubAssign};
+use core::iter::{zip};
 
 #[cfg(test)]
 mod tests;
@@ -59,17 +60,6 @@ impl Zero for f32 {
     }
 }
 
-const fn is_canonically_ordered(mut lhs: usize, rhs: usize) -> bool {
-    lhs >>= 1;
-
-    let mut x = false;
-    while lhs != 0 {
-        x ^= usize::count_ones(lhs & rhs) % 2 != 0;
-        lhs >>= 1;
-    }
-    x
-}
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Clifford {
     positive: usize,
@@ -110,10 +100,6 @@ impl Clifford {
             lhs >>= 1;
         }
         flips % 2 != 0
-    }
-
-    const fn bit_grade(self, x: usize) -> u32 {
-        usize::count_ones(x)
     }
 
     const fn bit_to_blade(self, x: usize) -> usize {
@@ -216,10 +202,11 @@ impl<T, const C: Clifford> Multivector<T, C> where
     &'a T: Mul<&'b T, Output = T>,
     {
         let mut v = T::zero();
-        for (i, (x, y)) in core::iter::zip(&self.data, &other.data).enumerate() {
-            if C.zero_by_form(C.blade_to_bit(i)) {
+        for (i, (x, y)) in zip(&self.data, &other.data).enumerate() {
+            let j = C.blade_to_bit(i);
+            if C.zero_by_form(j) {
                 continue;
-            } else if C.flip_by_form(C.blade_to_bit(i)) {
+            } else if C.flip_by_form(j) {
                 v -= x * y;
             } else {
                 v += x * y;

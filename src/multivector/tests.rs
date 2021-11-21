@@ -1,5 +1,5 @@
 use crate::multivector::*;
-use std::ops::Rem;
+use core::ops::Rem;
 use quickcheck::{Arbitrary, Gen, QuickCheck};
 
 const PGA3: Clifford = pga(3);
@@ -92,10 +92,11 @@ T: Arbitrary + Clone + Float + One + Rem<T, Output = T> + Send + Zero + 'static,
 {
     fn arbitrary(gen: &mut Gen) -> Self {
         fn arbitrary_float<T: Arbitrary + Clone + Float + One + Rem<T, Output = T> + Send + Zero + 'static>(gen: &mut Gen) -> T {
-            let x = T::arbitrary(gen);
-            if x.is_nan() {
-                T::zero()
-            } else if x.is_infinite() {
+            let mut x = T::arbitrary(gen);
+            while x.is_nan() {
+                x = T::arbitrary(gen);
+            }
+            if x.is_infinite() {
                 T::one()
             } else {
                 x % T::one()
