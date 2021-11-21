@@ -1,7 +1,5 @@
 #![allow(incomplete_features)]
-#![feature(const_generics, const_evaluatable_checked, const_panic, maybe_uninit_uninit_array)]
-
-
+#![feature(const_for, adt_const_params, generic_const_exprs, iter_zip, maybe_uninit_uninit_array)]
 
 mod multivector;
 pub use multivector::{Clifford, Multivector, Float, One, Zero};
